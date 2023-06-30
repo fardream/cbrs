@@ -22,7 +22,7 @@ pub struct Subscribe {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct Subscription {
+pub struct Subscriptions {
     pub channels: Vec<ChannelSubscribe>,
 }
 
@@ -114,7 +114,7 @@ pub struct Done {
     pub time: DateTime<Utc>,
     pub product_id: String,
     pub sequence: u64,
-    pub price: Decimal,
+    pub price: Option<Decimal>,
     pub order_id: String,
     pub reason: String,
     pub cancel_reason: Option<String>,
@@ -228,13 +228,23 @@ pub struct Activate {
     pub private: bool,
 }
 
+/// Error message coming from the api.
+/// ```json
+/// {"type":"error","message":"Failed to subscribe","reason":"ETH-USD is not a valid product"}
+/// ```
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Error {
+    pub message: String,
+    pub reason: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum CBMesasge {
     #[serde(rename = "subscribe")]
     Subscribe(Subscribe),
-    #[serde(rename = "subscription")]
-    Subscription(Subscription),
+    #[serde(rename = "subscriptions")]
+    Subscriptions(Subscriptions),
     #[serde(rename = "unsubscribe")]
     Unsubscribe(Unsubscribe),
     #[serde(rename = "received")]
@@ -249,11 +259,15 @@ pub enum CBMesasge {
     Change(Change),
     #[serde(rename = "activate")]
     Activate(Activate),
+    #[serde(rename = "error")]
+    Error(Error),
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::from_str;
+    use std::fs::read_to_string;
 
     #[test]
     fn test_deserialize() {
@@ -270,7 +284,7 @@ mod tests {
   "client-oid": "d50ec974-76a2-454b-66f135b1ea8c"
 }
 "#;
-        let r = serde_json::from_str(received);
+        let r = from_str(received);
         println!("{:?}", r);
         assert!(r.is_ok());
         let r: CBMesasge = r.unwrap();
@@ -280,7 +294,22 @@ mod tests {
                 Some("d50ec974-76a2-454b-66f135b1ea8c".to_owned())
             );
         } else {
-            assert!(false);
+            panic!("failed to parse message");
+        }
+    }
+
+    #[test]
+    fn test_many_deserialize() {
+        let test_file = concat!(env!("CARGO_MANIFEST_DIR"), "/testdata/messages.json");
+        let contents = read_to_string(test_file).expect("failed to read the messages");
+        for aline in contents.split('\n') {
+            if aline.is_empty() {
+                continue;
+            }
+            let r = from_str::<CBMesasge>(aline);
+            if r.is_err() {
+                panic!("failed to parse {}: {:?}", aline, r.err());
+            }
         }
     }
 }

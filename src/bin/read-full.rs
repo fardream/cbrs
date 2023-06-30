@@ -45,6 +45,7 @@ fn main() {
             let parsed = from_str::<CBMesasge>(&msg);
             if parsed.is_err() {
                 println!("failed to parse msg: {}", msg);
+                println!("failed reason: {:?}", parsed.err());
             } else {
                 println!("{:?}", parsed);
             }
