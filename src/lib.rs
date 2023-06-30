@@ -1,4 +1,5 @@
 use chrono::{offset::Utc, DateTime};
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -34,9 +35,9 @@ pub struct Unsubscribe {
 #[serde(tag = "order_type")]
 pub enum ReceivedOrderType {
     #[serde(rename = "market")]
-    Market { funds: String },
+    Market { funds: Decimal },
     #[serde(rename = "limit")]
-    Limit { size: String, price: String },
+    Limit { size: Decimal, price: Decimal },
 }
 
 /// Received indicates an order received.
@@ -89,8 +90,8 @@ pub struct Open {
     pub product_id: String,
     pub sequence: u64,
     pub order_id: String,
-    pub price: String,
-    pub remaining_size: String,
+    pub price: Decimal,
+    pub remaining_size: Decimal,
     pub side: String,
 }
 
@@ -113,12 +114,12 @@ pub struct Done {
     pub time: DateTime<Utc>,
     pub product_id: String,
     pub sequence: u64,
-    pub price: String,
+    pub price: Decimal,
     pub order_id: String,
     pub reason: String,
     pub cancel_reason: Option<String>,
     pub side: String,
-    pub remaining_size: String,
+    pub remaining_size: Decimal,
 }
 
 /// Match is a match between two orders on the full channel.
@@ -144,8 +145,8 @@ pub struct Match {
     pub taker_order_id: String,
     pub time: DateTime<Utc>,
     pub product_id: String,
-    pub size: String,
-    pub price: String,
+    pub size: Decimal,
+    pub price: Decimal,
     pub side: String,
 }
 
@@ -188,12 +189,12 @@ pub struct Change {
     pub order_id: String,
     pub side: String,
     pub product_id: String,
-    pub old_size: Option<String>,
-    pub new_size: Option<String>,
-    pub size: Option<String>,
-    pub old_price: Option<String>,
-    pub new_price: Option<String>,
-    pub price: Option<String>,
+    pub old_size: Option<Decimal>,
+    pub new_size: Option<Decimal>,
+    pub size: Option<Decimal>,
+    pub old_price: Option<Decimal>,
+    pub new_price: Option<Decimal>,
+    pub price: Option<Decimal>,
 }
 
 /// Active is the stop order activation on the full channel.
@@ -221,9 +222,9 @@ pub struct Activate {
     pub profile_id: String,
     pub stop_type: String,
     pub side: String,
-    pub stop_price: String,
-    pub size: String,
-    pub funds: String,
+    pub stop_price: Decimal,
+    pub size: Decimal,
+    pub funds: Decimal,
     pub private: bool,
 }
 
