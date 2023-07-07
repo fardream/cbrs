@@ -11,3 +11,7 @@ tungstenite = { version = "0.18.0", features = ["rustls-tls-native-roots"] }
 url = "2.3.1"
 rust_decimal = { version = "1.28.1", features = ["serde"] }
 rust_decimal_macros = { version = "1.28.1" }
+fefix = { version = "0.7.0", features = ["codegen", "fix50sp2"]}
+
+[build-dependencies]
+fefix = { version = "0.7.0", features = ["codegen", "fix50sp2"]}
