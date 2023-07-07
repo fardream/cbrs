@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{offset::Utc, DateTime};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -228,6 +230,12 @@ pub struct Activate {
     pub private: bool,
 }
 
+/// Level3 Feed
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Level3 {
+    schema: Option<HashMap<String, Vec<String>>>,
+}
+
 /// Error message coming from the api.
 /// ```json
 /// {"type":"error","message":"Failed to subscribe","reason":"ETH-USD is not a valid product"}
@@ -240,7 +248,7 @@ pub struct Error {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum CBMesasge {
+pub enum CBMesasgeStruct {
     #[serde(rename = "subscribe")]
     Subscribe(Subscribe),
     #[serde(rename = "subscriptions")]
@@ -259,8 +267,18 @@ pub enum CBMesasge {
     Change(Change),
     #[serde(rename = "activate")]
     Activate(Activate),
+    #[serde(rename = "level3")]
+    Level3(Level3),
     #[serde(rename = "error")]
     Error(Error),
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum CBMessage {
+    CBMessageStruct(CBMesasgeStruct),
+    StrVec(Vec<String>),
 }
 
 #[cfg(test)]
@@ -287,8 +305,8 @@ mod tests {
         let r = from_str(received);
         println!("{:?}", r);
         assert!(r.is_ok());
-        let r: CBMesasge = r.unwrap();
-        if let CBMesasge::Received(r) = r {
+        let r: CBMesasgeStruct = r.unwrap();
+        if let CBMesasgeStruct::Received(r) = r {
             assert_eq!(
                 r.client_oid,
                 Some("d50ec974-76a2-454b-66f135b1ea8c".to_owned())
@@ -306,7 +324,7 @@ mod tests {
             if aline.is_empty() {
                 continue;
             }
-            let r = from_str::<CBMesasge>(aline);
+            let r = from_str::<CBMesasgeStruct>(aline);
             if r.is_err() {
                 panic!("failed to parse {}: {:?}", aline, r.err());
             }
