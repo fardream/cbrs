@@ -231,9 +231,61 @@ pub struct Activate {
 }
 
 /// Level3 Feed
+/// Level3 feeds first sends schema, then string arrays
+/// https://docs.cloud.coinbase.com/exchange/docs/websocket-channels#level3-channel
+///
+/// ```json
+/// {
+///   "type": "level3",
+///   "schema": {
+///     "change": [
+///       "type",
+///       "product_id",
+///       "sequence",
+///       "order_id",
+///       "price",
+///       "size",
+///       "time"
+///     ],
+///     "done": [
+///       "type",
+///       "product_id",
+///       "sequence",
+///       "order_id",
+///       "time"
+///     ],
+///     "match": [
+///       "type",
+///       "product_id",
+///       "sequence",
+///       "maker_order_id",
+///       "taker_order_id",
+///       "price",
+///       "size",
+///       "time"
+///     ],
+///     "noop": [
+///       "type",
+///       "product_id",
+///       "sequence",
+///       "time"
+///     ],
+///     "open": [
+///       "type",
+///       "product_id",
+///       "sequence",
+///       "order_id",
+///       "side",
+///       "price",
+///       "size",
+///       "time"
+///     ]
+///   }
+/// }
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Level3 {
-    schema: Option<HashMap<String, Vec<String>>>,
+    schema: HashMap<String, Vec<String>>,
 }
 
 /// Error message coming from the api.
@@ -248,7 +300,7 @@ pub struct Error {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum CBMesasgeStruct {
+pub enum CBMessageStruct {
     #[serde(rename = "subscribe")]
     Subscribe(Subscribe),
     #[serde(rename = "subscriptions")]
@@ -277,7 +329,7 @@ pub enum CBMesasgeStruct {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum CBMessage {
-    CBMessageStruct(CBMesasgeStruct),
+    CBMessageStruct(CBMessageStruct),
     StrVec(Vec<String>),
 }
 
@@ -305,8 +357,8 @@ mod tests {
         let r = from_str(received);
         println!("{:?}", r);
         assert!(r.is_ok());
-        let r: CBMesasgeStruct = r.unwrap();
-        if let CBMesasgeStruct::Received(r) = r {
+        let r: CBMessageStruct = r.unwrap();
+        if let CBMessageStruct::Received(r) = r {
             assert_eq!(
                 r.client_oid,
                 Some("d50ec974-76a2-454b-66f135b1ea8c".to_owned())
@@ -324,7 +376,7 @@ mod tests {
             if aline.is_empty() {
                 continue;
             }
-            let r = from_str::<CBMesasgeStruct>(aline);
+            let r = from_str::<CBMessageStruct>(aline);
             if r.is_err() {
                 panic!("failed to parse {}: {:?}", aline, r.err());
             }

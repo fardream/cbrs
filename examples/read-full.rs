@@ -44,7 +44,7 @@ async fn main() {
         product_ids: vec![],
     };
 
-    let sub = CBMesasgeStruct::Subscribe(sub);
+    let sub = CBMessageStruct::Subscribe(sub);
     println!("{}", to_string_pretty(&sub).unwrap());
 
     let url = Url::parse(&endpoint).unwrap_or_else(|_| panic!("failed to parse {endpoint}"));
@@ -73,7 +73,7 @@ async fn main() {
 
         let _ = sigint.recv().await;
 
-        let unsub = to_string_pretty(&CBMesasgeStruct::Unsubscribe(Unsubscribe {
+        let unsub = to_string_pretty(&CBMessageStruct::Unsubscribe(Unsubscribe {
             channels: vec![ChannelSubscribe::Detailed(DetailedChannelSubscribe {
                 name: channel,
                 product_ids: vec!["BTC-USD".to_owned()],
